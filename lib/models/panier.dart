@@ -1,28 +1,33 @@
-// lib/models/panier.dart
 import 'panier_item.dart';
 
 class Panier {
+  final String id;
   final String clientId;
-  final String? id;
   final List<PanierItem> items;
-  double total;
+  final double total;
 
   Panier({
-    required this.clientId,
     required this.id,
+    required this.clientId,
     required this.items,
     required this.total,
   });
 
   factory Panier.fromJson(Map<String, dynamic> json) {
-    var itemList = json['items'] as List;
-    List<PanierItem> itemsList =
-    itemList.map((item) => PanierItem.fromJson(item)).toList();
     return Panier(
-      clientId: json['clientId'],
-      id: json['id'],
-      items: itemsList,
-      total: json['total']?.toDouble() ?? 0.0,
+      id: json['id'] as String,
+      clientId: json['clientId'] as String,
+      items: (json['items'] as List).map((item) => PanierItem.fromJson(item as Map<String, dynamic>)).toList(),
+      total: (json['total'] as num).toDouble(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'clientId': clientId,
+      'items': items.map((item) => item.toJson()).toList(),
+      'total': total,
+    };
   }
 }

@@ -1,30 +1,33 @@
-// lib/models/panier_item.dart
 class PanierItem {
   final String menuItemId;
-  final String nom;
-  final double prixUnitaire;
-  late final int quantity;
-  final double subTotal;
-  final String image;
+  final int quantity;
+  final double price;
+  final String name;
 
   PanierItem({
     required this.menuItemId,
-    required this.nom,
-    required this.prixUnitaire,
     required this.quantity,
-    required this.subTotal,
-    required this.image
-
+    required this.price,
+    required this.name,
   });
+
+  double get subTotal => price * quantity;
 
   factory PanierItem.fromJson(Map<String, dynamic> json) {
     return PanierItem(
-      menuItemId: json['menuItemId'],
-      nom: json['nom'],
-      prixUnitaire: json['prixUnitaire'].toDouble(),
-      quantity: json['quantity'],
-      subTotal: json['subTotal'].toDouble(),
-      image: '',
+      menuItemId: json['menuItemId'] as String,
+      quantity: json['quantity'] as int,
+      price: (json['price'] as num).toDouble(),
+      name: json['name'] as String,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'menuItemId': menuItemId,
+      'quantity': quantity,
+      'price': price,
+      'name': name,
+    };
   }
 }

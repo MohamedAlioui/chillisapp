@@ -52,12 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
         userId: widget.userId,
       ),
       CartScreen(
-        userEmail: widget.userEmail,
-        userName: widget.userName,
-        userPhotoUrl: widget.userPhotoUrl,
-        panierId: widget.panierId,
         userId: widget.userId,
-
+        panierId: widget.panierId,
 
       ),
       AccountScreen(
