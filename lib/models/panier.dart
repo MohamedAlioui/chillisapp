@@ -14,13 +14,29 @@ class Panier {
   });
 
   factory Panier.fromJson(Map<String, dynamic> json) {
-    return Panier(
-      id: json['id'] as String,
-      clientId: json['clientId'] as String,
-      items: (json['items'] as List).map((item) => PanierItem.fromJson(item as Map<String, dynamic>)).toList(),
-      total: (json['total'] as num).toDouble(),
-    );
+    try {
+      final id = json['id'] as String;
+      final clientId = json['clientId'] as String;
+      final items = (json['items'] as List?)
+          ?.map((item) => PanierItem.fromJson(item as Map<String, dynamic>))
+          .toList() ??
+          [];
+      final total = (json['total'] as num?)?.toDouble() ?? 0.0;
+
+      print('Deserialized Panier: id=$id, clientId=$clientId, total=$total');
+      return Panier(
+        id: id,
+        clientId: clientId,
+        items: items,
+        total: total,
+      );
+    } catch (e, stackTrace) {
+      print('Error deserializing Panier: $e\n$stackTrace');
+      throw Exception('Failed to deserialize Panier: ${e.toString()}');
+    }
   }
+
+
 
   Map<String, dynamic> toJson() {
     return {

@@ -146,6 +146,15 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildCartContent(Panier panier) {
+    if (panier.items.isEmpty) {
+      return Center(
+        child: Text(
+          'Your cart is empty!',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -196,6 +205,7 @@ class _CartScreenState extends State<CartScreen> {
           }
 
           if (snapshot.hasError) {
+            print('Error: ${snapshot.error}'); // Debugging
             return CartError(
               error: snapshot.error.toString(),
               onRetry: _loadCart,
@@ -203,15 +213,18 @@ class _CartScreenState extends State<CartScreen> {
           }
 
           if (!snapshot.hasData) {
+            print('Snapshot has no data'); // Debugging
             return CartError(
               error: 'Cart not found',
               onRetry: _loadCart,
             );
           }
 
+          print('Cart Data: ${snapshot.data}'); // Debugging
           return _buildCartContent(snapshot.data!);
         },
       ),
+
     );
   }
 

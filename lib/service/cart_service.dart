@@ -11,12 +11,14 @@ class CartService {
     );
 
     if (response.statusCode == 200) {
-      return Panier.fromJson(json.decode(response.body) as Map<String, dynamic>);
+      final decodedResponse = json.decode(response.body) as Map<String, dynamic>;
+      print('Decoded Response: $decodedResponse'); // Debugging
+      return Panier.fromJson(decodedResponse);
     } else {
-
-      throw Exception('Failed to load panier $panierId +++');
+      throw Exception('Failed to load panier $panierId');
     }
   }
+
 
   Future<Commande> createCommandeFromPanier(String panierId, Commande commande) async {
     final response = await http.post(
