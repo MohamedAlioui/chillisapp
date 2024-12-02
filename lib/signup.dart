@@ -116,11 +116,17 @@ class _SignUpState extends State<SignUp> {
       body: Container(
         child: Column(
           children: [
+            SizedBox(height: 80.0),
+
             Container(
                 width: MediaQuery.of(context).size.width,
+                height: 150, // Reduced height for smaller logo
                 child: Image.asset(
-                  "images/car.PNG",
-                  fit: BoxFit.cover,
+                  "images/logo.jpg",
+                  fit: BoxFit.contain, // Changed to contain for better fit
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.error, size: 20, color: Colors.red);
+                  },
                 )),
             SizedBox(
               height: 30.0,
@@ -199,7 +205,7 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ),
                     SizedBox(
-                      height: 30.0,
+                      height: 40.0,
                     ),
                     GestureDetector(
                       onTap: () {
@@ -216,7 +222,7 @@ class _SignUpState extends State<SignUp> {
                         width: MediaQuery.of(context).size.width,
                         padding: EdgeInsets.symmetric(vertical: 13.0, horizontal: 30.0),
                         decoration: BoxDecoration(
-                            color: Color(0xFF273671),
+                            color: Colors.red,
                             borderRadius: BorderRadius.circular(30)),
                         child: Center(
                           child: Text(
@@ -234,36 +240,15 @@ class _SignUpState extends State<SignUp> {
               ),
             ),
             SizedBox(
-              height: 40.0,
-            ),
-            Text(
-              "or LogIn with",
-              style: TextStyle(
-                  color: Color(0xFF273671),
-                  fontSize: 22.0,
-                  fontWeight: FontWeight.w500),
-            ),
-            SizedBox(
               height: 30.0,
             ),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  "images/google.png",
-                  height: 45,
-                  width: 45,
-                  fit: BoxFit.cover,
-                ),
                 SizedBox(
                   width: 30.0,
                 ),
-                Image.asset(
-                  "images/apple1.png",
-                  height: 50,
-                  width: 50,
-                  fit: BoxFit.cover,
-                )
               ],
             ),
             SizedBox(
@@ -288,7 +273,7 @@ class _SignUpState extends State<SignUp> {
                   child: Text(
                     "LogIn",
                     style: TextStyle(
-                        color: Color(0xFF273671),
+                        color: Colors.red,
                         fontSize: 20.0,
                         fontWeight: FontWeight.w500),
                   ),

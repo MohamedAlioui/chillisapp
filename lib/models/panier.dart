@@ -18,8 +18,8 @@ class Panier {
       final id = json['id'] as String;
       final clientId = json['clientId'] as String;
       final items = (json['items'] as List?)
-          ?.map((item) => PanierItem.fromJson(item as Map<String, dynamic>))
-          .toList() ??
+              ?.map((item) => PanierItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
           [];
       final total = (json['total'] as num?)?.toDouble() ?? 0.0;
 
@@ -35,8 +35,6 @@ class Panier {
       throw Exception('Failed to deserialize Panier: ${e.toString()}');
     }
   }
-
-
 
   Map<String, dynamic> toJson() {
     return {

@@ -10,50 +10,49 @@ class AuthMethods {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Current user
   Future<User?> getCurrentUser() async {
-    return await auth.currentUser;
+    return auth.currentUser;
   }
 
   Future<void> signInWithGoogle(BuildContext context) async {
     try {
       final GoogleSignIn googleSignIn = GoogleSignIn();
-
-      final GoogleSignInAccount? googleSignInAccount = await googleSignIn.signIn();
+      final GoogleSignInAccount? googleSignInAccount =
+          await googleSignIn.signIn();
       if (googleSignInAccount == null) {
         print("User canceled the sign-in");
-        return; // Exit if the user cancels the sign-in
+        return;
       }
 
       final GoogleSignInAuthentication googleSignInAuthentication =
-      await googleSignInAccount.authentication;
-
+          await googleSignInAccount.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         idToken: googleSignInAuthentication.idToken,
         accessToken: googleSignInAuthentication.accessToken,
       );
 
-      // Sign in with Firebase using the Google credentials
       UserCredential result = await auth.signInWithCredential(credential);
-
       User? userDetails = result.user;
 
       if (userDetails != null) {
-        // Check if user exists in Firestore, otherwise add them
-        Map<String, dynamic> userInfoMap = {
-          "email": userDetails.email,
-          "name": userDetails.displayName,
-          "imgUrl": userDetails.photoURL,
-          "id": userDetails.uid,
-        };
+        DocumentSnapshot userDoc =
+            await _firestore.collection('Users').doc(userDetails.uid).get();
 
-        // Add the user data to Firestore
-        await DatabaseMethods().addUser(userDetails.uid, userInfoMap);
+        if (userDoc.exists) {
+          print("User already exists: ${userDetails.email}");
+        } else {
+          print("Creating new user: ${userDetails.email}");
+          Map<String, dynamic> userInfoMap = {
+            "email": userDetails.email,
+            "name": userDetails.displayName,
+            "imgUrl": userDetails.photoURL,
+            "id": userDetails.uid,
+          };
+          await DatabaseMethods().addUser(userDetails.uid, userInfoMap);
+        }
 
-        // Create a cart (panier) for the user
-        await _createPanier(userDetails.uid);
+        String panierId = await _createPanier(userDetails.uid);
 
-        // Pass user data to the HomeScreen and navigate
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -62,10 +61,10 @@ class AuthMethods {
               userName: userDetails.displayName ?? 'No Name',
               userPhotoUrl: userDetails.photoURL ?? '',
               userId: userDetails.uid,
-              panierId: '',
+              panierId: panierId,
             ),
           ),
-              (Route<dynamic> route) => false, // Remove all previous routes
+          (Route<dynamic> route) => false,
         );
       }
     } catch (error) {
@@ -80,35 +79,23 @@ class AuthMethods {
     }
   }
 
-  // Create a cart (panier) for the user after Google sign-in
-  Future<void> _createPanier(String userId) async {
+  Future<String> _createPanier(String userId) async {
     try {
-      // Create a new cart in Firestore under the 'paniers' collection
-      await _firestore.collection('paniers').doc(userId).set({
-
-        'clientId': userId,
-        'items': [], // Initialize with an empty list of items
-        'total': 0.0, // Initialize with a total of 0
-        'createdAt': FieldValue.serverTimestamp(),
-      });
       final panierRef = await _firestore.collection('paniers').add({
-        'clientId': userId,  // Store user ID to associate the cart with the user
-        'items': [],          // Initialize with an empty list of items
-        'total': 0.0,         // Initialize total cost as 0
-        'createdAt': FieldValue.serverTimestamp(),  // Store timestamp of creation
+        'clientId': userId,
+        'items': [],
+        'total': 0.0,
+        'createdAt': FieldValue.serverTimestamp(),
       });
       String panierId = panierRef.id;
       await _firestore.collection('Users').doc(userId).update({
-        'panierId': panierId,  // Store the panierId to easily reference it later
+        'panierId': panierId,
       });
-      // You can also link this cart ID back to the user document if needed
-      // await _firestore.collection('Users').doc(userId).update({
-      //   'panierId': userId, // This is just an example, you can link the panier as needed
-      // });
-
       print("Cart created successfully for the user.");
+      return panierId;
     } catch (e) {
       print("Error creating cart: $e");
+      return '';
     }
   }
 }

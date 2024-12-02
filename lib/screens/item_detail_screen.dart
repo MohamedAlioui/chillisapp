@@ -1,103 +1,247 @@
-// lib/screens/item_detail_screen.dart
-
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/menu_item.dart';
+import '../models/panier.dart';
+import '../models/commande.dart';
+import '../service/cart_service.dart';
+import '../service/user_service.dart';
+import '../widgets/cart_item_list.dart';
+import '../widgets/delivery_options.dart';
+import '../widgets/order_form.dart';
+import '../widgets/place_order_button.dart';
+import '../widgets/error_dialog.dart';
+import '../widgets/cart_loading.dart';
+import '../widgets/cart_error.dart';
+import '../utils/http_exception.dart';
+import '../widgets/cart_error.dart';
+import '../widgets/cart_loading.dart';
+import '../models/menu_item.dart'; // MenuItem model
+import 'item_detail_screen.dart'; // Page pour les détails des items
 
-class ItemDetailScreen extends StatefulWidget {
-  final MenuItem menuItem;
+class CartScreen extends StatefulWidget {
+  final String userId;
+  final String? panierId;
 
-  ItemDetailScreen({required this.menuItem});
+  const CartScreen({
+    super.key,
+    required this.userId,
+    this.panierId,
+  });
 
   @override
-  _ItemDetailScreenState createState() => _ItemDetailScreenState();
+  _CartScreenState createState() => _CartScreenState();
 }
 
-class _ItemDetailScreenState extends State<ItemDetailScreen> {
-  int _quantity = 1; // Initial quantity
+class _CartScreenState extends State<CartScreen> {
+  final CartService _cartService = CartService();
+  final UserService _userService = UserService();
+  Future<Panier>? _panierFuture;
+  final _commentController = TextEditingController();
+  final _addressController = TextEditingController();
+  String _selectedDeliveryType = 'pickup';
+  bool _isLoading = false;
+  String? _currentPanierId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeCart();
+  }
+
+  Future<void> _initializeCart() async {
+    try {
+      String panierId;
+      if (widget.panierId != null && widget.panierId!.isNotEmpty) {
+        panierId = widget.panierId!;
+      } else {
+        panierId = await _userService.fetchUserPanierId(widget.userId);
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentPanierId = panierId;
+          _panierFuture = _cartService.getPanierById(panierId);
+        });
+      }
+    } on HttpException catch (e) {
+      if (mounted) {
+        _showError(e.toString());
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('Failed to initialize cart: ${e.toString()}');
+      }
+    }
+  }
+
+  Future<void> _loadCart() async {
+    try {
+      String panierId;
+      if (_currentPanierId != null && _currentPanierId!.isNotEmpty) {
+        panierId = _currentPanierId!;
+      } else {
+        panierId = await _userService.fetchUserPanierId(widget.userId);
+        _currentPanierId = panierId;
+      }
+
+      final updatedPanier = await _cartService.getPanierById(panierId);
+
+      if (mounted) {
+        setState(() {
+          _panierFuture = Future.value(updatedPanier);
+        });
+      }
+    } catch (e) {
+      print('Error loading cart: $e'); // Debugging
+      if (mounted) {
+        _showError('Failed to load cart: ${e.toString()}');
+      }
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => ErrorDialog(message: message),
+    );
+  }
+
+  Future<void> _placeOrder(Panier panier) async {
+    if (_selectedDeliveryType == 'delivery' &&
+        _addressController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a delivery address')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final commande = Commande(
+        clientId: widget.userId,
+        items: panier.items,
+        total: panier.total,
+        localisationResto:
+            _selectedDeliveryType == 'pickup' ? "Restaurant B" : "",
+        etat: "pending",
+        typeCommande: _selectedDeliveryType,
+        commentaire: _commentController.text,
+        adresseLivraison:
+            _selectedDeliveryType == 'delivery' ? _addressController.text : "",
+      );
+
+      print('Sending order: ${commande.toJson()}'); // Debugging
+
+      final createdCommande =
+          await _cartService.createCommandeFromPanier(panier.id, commande);
+
+      print('Order created: ${createdCommande.toJson()}'); // Debugging
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order placed successfully!')),
+      );
+
+      _loadCart(); // Recharger le panier après avoir passé la commande
+    } catch (e) {
+      print('Error during order placement: $e'); // Debugging
+      _showError('Failed to place order: ${e.toString()}');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildCartContent(Panier panier) {
+    const List<String> restaurantLocations = [
+      'Chilis El Manar',
+      'Chilis Les Berge du Lac',
+    ];
+
+    if (panier.items.isEmpty) {
+      return Center(
+        child: Text(
+          'Your cart is empty!',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CartItemList(
+            items: panier.items,
+            total: panier.total,
+          ),
+          const SizedBox(height: 16),
+          DeliveryOptions(
+            selectedType: _selectedDeliveryType,
+            onTypeChanged: (value) {
+              setState(() {
+                _selectedDeliveryType = value ?? 'pickup';
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          OrderForm(
+            commentController: _commentController,
+            addressController: _addressController,
+            selectedDeliveryType: _selectedDeliveryType,
+            restaurantLocations: restaurantLocations, // Pass the list here
+          ),
+          const SizedBox(height: 24),
+          PlaceOrderButton(
+            onPressed: () => _placeOrder(panier),
+            isLoading: _isLoading,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.menuItem.nom),
-        backgroundColor: Colors.red,
-        elevation: 0,
+        title: const Text('My Cart'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Item image or fallback icon
-            widget.menuItem.image != null
-                ? ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                widget.menuItem.image!,
-                height: 250,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            )
-                : Icon(Icons.image_not_supported, size: 250, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              widget.menuItem.nom,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(widget.menuItem.description),
-            SizedBox(height: 16),
-            Text(
-              "Prix: ${widget.menuItem.prix} DT",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
-            ),
-            SizedBox(height: 20),
-            // Quantity management
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    if (_quantity > 1) {
-                      setState(() {
-                        _quantity--;
-                      });
-                    }
-                  },
-                  icon: Icon(Icons.remove, color: Colors.red),
-                ),
-                Text('$_quantity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _quantity++;
-                    });
-                  },
-                  icon: Icon(Icons.add, color: Colors.green),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Add item to the cart with selected quantity
+      body: _panierFuture == null
+          ? const CartLoading()
+          : FutureBuilder<Panier>(
+              future: _panierFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const CartLoading();
+                }
 
-                // Show a SnackBar to confirm the addition
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${widget.menuItem.nom} ajouté au panier avec $_quantity unités !'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
+                if (snapshot.hasError) {
+                  print('Error: ${snapshot.error}'); // Debugging
+                  return CartError(
+                    error: snapshot.error.toString(),
+                    onRetry: _loadCart,
+                  );
+                }
+
+                if (!snapshot.hasData) {
+                  print('Snapshot has no data'); // Debugging
+                  return CartError(
+                    error: 'Cart not found',
+                    onRetry: _loadCart,
+                  );
+                }
+
+                print('Cart Data: ${snapshot.data}'); // Debugging
+                return _buildCartContent(snapshot.data!);
               },
-              icon: Icon(Icons.shopping_cart, color: Colors.white),
-              label: Text('Add to Cart', style: TextStyle(color: Colors.white, fontSize: 18)),
             ),
-          ],
-        ),
-      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 }

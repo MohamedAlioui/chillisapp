@@ -1,11 +1,11 @@
-
 import 'package:chilisfinal/forgot_password.dart';
 import 'package:chilisfinal/login.dart';
 import 'package:chilisfinal/signup.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:chilisfinal/screens/profile_settings_screen.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
@@ -39,8 +39,13 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: LogIn()
-    );
+        home: LogIn(),
+        routes: {
+          '/login': (context) => LogIn(),
+          '/signup': (context) => SignUp(),
+          '/forgot-password': (context) => ForgotPassword(),
+          // In your MaterialApp widget's routes:
+        });
   }
 }
 

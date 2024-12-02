@@ -60,6 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
         userEmail: widget.userEmail,
         userName: widget.userName,
         userPhotoUrl: widget.userPhotoUrl,
+        userId: widget.userId,
 
       ),
     ];
@@ -82,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Logged in as: ${widget.userEmail}", style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 16),
           TextField(
             decoration: InputDecoration(

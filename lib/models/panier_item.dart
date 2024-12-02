@@ -17,7 +17,8 @@ class PanierItem {
     try {
       final menuItemId = json['menuItemId'] as String? ?? '';
       final quantity = json['quantity'] as int? ?? 0;
-      final price = (json['prixUnitaire'] as num?)?.toDouble() ?? 0.0; // Map prixUnitaire to price
+      final price = (json['prixUnitaire'] as num?)?.toDouble() ??
+          0.0; // Map prixUnitaire to price
       final name = json['nom'] as String? ?? 'Unnamed Item'; // Map nom to name
 
       print('Deserialized PanierItem: $menuItemId, $quantity, $price, $name');
@@ -38,7 +39,7 @@ class PanierItem {
       'menuItemId': menuItemId,
       'quantity': quantity,
       'price': price, // Map back to prixUnitaire if needed
-      'name': name,   // Map back to nom if needed
+      'name': name, // Map back to nom if needed
     };
   }
 }

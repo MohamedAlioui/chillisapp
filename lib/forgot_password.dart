@@ -37,7 +37,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.white,
       body: Container(
         child: Column(
           children: [
@@ -49,7 +49,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
               child: Text(
                 "Password Recovery",
                 style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 30.0,
                     fontWeight: FontWeight.bold),
               ),
@@ -60,7 +60,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             Text(
               "Enter your mail",
               style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.red,
                   fontSize: 20.0,
                   fontWeight: FontWeight.bold),
             ),
@@ -75,7 +75,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                             padding: EdgeInsets.only(left: 10.0),
                             decoration: BoxDecoration(
                               border:
-                              Border.all(color: Colors.white70, width: 2.0),
+                              Border.all(color: Colors.red, width: 2.0),
                               borderRadius: BorderRadius.circular(30),
                             ),
                             child: TextFormField(
@@ -86,14 +86,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 return null;
                               },
                               controller: mailcontroller,
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Colors.red),
                               decoration: InputDecoration(
                                   hintText: "Email",
                                   hintStyle: TextStyle(
-                                      fontSize: 18.0, color: Colors.white),
+                                      fontSize: 18.0, color: Colors.red),
                                   prefixIcon: Icon(
                                     Icons.person,
-                                    color: Colors.white70,
+                                    color: Colors.red,
                                     size: 30.0,
                                   ),
                                   border: InputBorder.none),
@@ -115,13 +115,13 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               width: 140,
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: Colors.red,
                                   borderRadius: BorderRadius.circular(10)),
                               child: Center(
                                 child: Text(
                                   "Send Email",
                                   style: TextStyle(
-                                      color: Colors.black,
+                                      color: Colors.white,
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold),
                                 ),
@@ -137,7 +137,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               Text(
                                 "Don't have an account?",
                                 style: TextStyle(
-                                    fontSize: 18.0, color: Colors.white),
+                                    fontSize: 18.0, color: Colors.red),
                               ),
                               SizedBox(
                                 width: 5.0,
@@ -152,7 +152,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 child: Text(
                                   "Create",
                                   style: TextStyle(
-                                      color: Color.fromARGB(225, 184, 166, 6),
+                                      color: Colors.black,
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.w500),
                                 ),

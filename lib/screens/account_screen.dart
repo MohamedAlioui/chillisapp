@@ -1,38 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'profile_settings_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   final String userName;
   final String userEmail;
   final String userPhotoUrl;
+  final String userId;
 
-  // Constructor to accept user data
   AccountScreen({
     required this.userName,
     required this.userEmail,
     required this.userPhotoUrl,
+    required this.userId,
   });
+
+  void _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed('/login');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Account"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () => _logout(context),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Account header section with avatar and user name/email
             Row(
               children: [
                 CircleAvatar(
                   radius: 40,
                   backgroundImage: userPhotoUrl.isNotEmpty
                       ? NetworkImage(userPhotoUrl)
-                      : AssetImage('assets/default_avatar.png') as ImageProvider, // Fallback image if no photo URL is available
+                      : AssetImage('assets/default_avatar.png')
+                          as ImageProvider,
                   child: userPhotoUrl.isEmpty
-                      ? Icon(Icons.person, size: 40, color: Colors.white) // Default icon if no photo URL
+                      ? Icon(Icons.person, size: 40, color: Colors.white)
                       : null,
                 ),
                 SizedBox(width: 16),
@@ -40,12 +54,13 @@ class AccountScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      userName, // Display the user's name
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      userName,
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      userEmail, // Display the user's email
+                      userEmail,
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
@@ -53,45 +68,35 @@ class AccountScreen extends StatelessWidget {
               ],
             ),
             SizedBox(height: 24),
-
-            // Account options list
             Expanded(
               child: ListView(
                 children: [
                   _buildAccountOption(
                     icon: Icons.person,
                     title: "Profile Settings",
-                    onTap: () {
-                      // Action to navigate to profile settings
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileSettingsScreen(
+                          userId: userId,
+                        ),
+                      ),
+                    ),
                   ),
                   _buildAccountOption(
                     icon: Icons.history,
                     title: "Order History",
-                    onTap: () {
-                      // Action to navigate to order history
-                    },
+                    onTap: () {},
                   ),
                   _buildAccountOption(
                     icon: Icons.settings,
                     title: "App Settings",
-                    onTap: () {
-                      // Action to navigate to app settings
-                    },
+                    onTap: () {},
                   ),
                   _buildAccountOption(
                     icon: Icons.help_outline,
                     title: "Help & Support",
-                    onTap: () {
-                      // Action to access help and support
-                    },
-                  ),
-                  _buildAccountOption(
-                    icon: Icons.logout,
-                    title: "Log Out",
-                    onTap: () {
-                      // Action to log out
-                    },
+                    onTap: () {},
                   ),
                 ],
               ),
@@ -102,8 +107,11 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
-  // Widget for account options
-  Widget _buildAccountOption({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildAccountOption({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
